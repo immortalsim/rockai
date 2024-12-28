@@ -13,20 +13,19 @@ class AnalysisService {
       final base64Image = base64Encode(bytes);
 
       String prompt = '''
-Analyze the image and provide a JSON response with these key details:
+Analyze the image and provide a JSON response with these key details in french without the accents, do not forget the double quotes at every word,:
 {
-  "is_rock": true/false,
-  "object": {
-    "name": "The Name of the Rock who appears, else just say 'Don' Identify'",
-    "type": "Rock type or object category",
-    "description": "Brief visual description",
-    "color": ["Main colors"],
-    "texture": "Texture description",
-    "possible_uses": "Potential uses"
+  "rock": {
+    "name": "Name or identification of the object",
+    "category": "Object category/type",
+    "description": "Detailed visual description",
+    "color": "Main colors present",
+    "properties": "Main properties of the object",
+    "common_uses": "Typical uses or purposes"
   },
-  "confidence_level": "high/medium/low"
+  "confidence_level": "high/medium/low",
+  "image_quality": "high/medium/low"
 }
-If it's not a rock, analyze the main visible object. Provide concise, factual information based solely on the image.
 ''';
 
       final response = await http.post(
@@ -67,67 +66,39 @@ If it's not a rock, analyze the main visible object. Provide concise, factual in
       }
     } catch (e) {
       print('Error during analysis: $e');
-      throw Exception('An error occurred during analysis');
+      throw Exception('An error occurred during analysis $e');
     }
   }
 
   Future<Map<String, dynamic>> processAndAnalyzeImage(String imagePath) async {
     try {
       Map<String, dynamic> analysisResult = await analyzeImage(imagePath);
-
-      if (analysisResult['is_rock'] == true) {
         await handleRockAnalysis(analysisResult, imagePath);
-        return {'is_rock': true, 'message': 'Rock added to collection'};
-      } else {
-        return handleNonRockAnalysis(analysisResult);
-      }
+        return {'message': 'Rock added to collection: '};
     } catch (e) {
       print('An error occurred during processing and analysis: $e');
-      return {'is_rock': false, 'error': 'An error occurred during analysis'};
+      return {'error': 'An error occurred during analysis : $e'};
     }
   }
 
   Future<void> handleRockAnalysis(Map<String, dynamic> analysisResult, String imagePath) async {
     final rock = Rock(
-      name: analysisResult['object']['name'],
-      type: analysisResult['object']['type'],
-      description: analysisResult['object']['description'],
-      color: List<String>.from(analysisResult['object']['color']),
-      commonUses: analysisResult['object']['possible_uses'],
+      name: analysisResult['rock']['name'] ?? 'pas d\'information',
+      category: analysisResult['rock']['category'] ?? 'pas d\'information',
+      description: analysisResult['rock']['description'] ?? 'pas d\'information',
+      color: analysisResult['rock']['color'] ?? 'pas d\'information',
+      properties: analysisResult['rock']['properties'] ?? 'pas d\'information',
+      common_uses: analysisResult['rock']['common_uses'] ?? 'pas d\'information',
+      confidenceLevel: analysisResult['confidence_level'] ?? 'pas d\'information',
+      imageQuality: analysisResult['image_quality'] ?? 'pas d\'information',
       imageUrl: imagePath,
-      confidenceLevel: analysisResult['confidence_level'],
-      geographicalPresence: ['Non déterminé'],
-      physicalProperties: PhysicalProperties(
-        texture: analysisResult['object']['texture'],
-        composition: ['Non déterminé'],
-        density: 'Non déterminé',
-        porosity: 'Non déterminé',
-        permeability: 'Non déterminé',
-      ),
-      hardness: Hardness(
-        mohsScale: 'Soon',
-        description: 'Soon',
-      ),
-      dangerLevel: 'Soon',
-      geologicalProperties: 'Soon',
-      imageQuality: 'Soon',
     );
 
     try {
-      await ApiService.addRock(rock.toMap());
+      await ApiService.addRock(rock.toMap(), File(imagePath));
     } catch (e) {
       print('Error saving rock to backend: $e');
       throw Exception('Failed to save rock to collection');
     }
-  }
-
-  Map<String, dynamic> handleNonRockAnalysis(Map<String, dynamic> analysisResult) {
-    return {
-      'is_rock': false,
-      'message': 'The analyzed object is not a rock.',
-      'object_name': analysisResult['object']['name'],
-      'object_type': analysisResult['object']['type'],
-      'description': analysisResult['object']['description'],
-    };
   }
 } 

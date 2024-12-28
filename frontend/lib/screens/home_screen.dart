@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roche/screens/map_screen.dart';
 import '../models/rock.dart';
 import '../services/api_service.dart';
+import 'analysis_result_screen.dart';
 import 'login_screen.dart';
 import '../styles/app_colors.dart';
 import 'analysis_screen.dart';
@@ -31,14 +33,17 @@ class _HomeScreenState extends State<HomeScreen> {
 
     try {
       final rocksData = await ApiService.getRocks();
+      print('Fetched rocks data: $rocksData');
       setState(() {
         _recentRocks = rocksData.map((data) => Rock.fromMap(data)).toList();
+        print('Parsed rocks: $_recentRocks');
         // Only keep the 5 most recent rocks
         if (_recentRocks.length > 5) {
           _recentRocks = _recentRocks.sublist(0, 5);
         }
       });
     } catch (e) {
+      print('Error loading rocks: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
@@ -65,6 +70,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    print('Building with recent rocks: $_recentRocks');
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -158,6 +164,18 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       ),
+      bottomNavigationBar: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          IconButton(onPressed: (){
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => MapScreen()),
+            );
+          }, icon: Icon(Icons.map, color: AppColors.primary,)),
+          IconButton(onPressed: (){}, icon: Icon(Icons.people_alt_outlined, color: AppColors.primary,))
+        ],
+      ),
     );
   }
 
@@ -202,6 +220,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildEmptyState() {
+
+    print(_recentRocks);
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -244,30 +264,58 @@ class _HomeScreenState extends State<HomeScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: ListTile(
             leading: rock.imageUrl != null
-                ? ClipRRect(
+                ? FutureBuilder<ImageProvider>(
+              future: ApiService.getImage(rock.imageUrl!),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Icon(Icons.error, color: AppColors.accent);
+                } else if (snapshot.hasData) {
+                  return ClipRRect(
                     borderRadius: BorderRadius.circular(4),
-                    child: Image.asset(
-                      rock.imageUrl!,
+                    child: Image(
+                      image: snapshot.data!,
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) =>
                           Icon(Icons.landscape, color: AppColors.accent),
                     ),
-                  )
+                  );
+                } else {
+                  return Icon(Icons.landscape, color: AppColors.accent);
+                }
+              },
+            )
                 : Icon(Icons.landscape, color: AppColors.accent),
             title: Text(
               rock.name,
               style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500),
             ),
             subtitle: Text(
-              rock.type,
+              rock.category,
               style: GoogleFonts.exo2(color: AppColors.secondary),
             ),
             trailing: Icon(Icons.chevron_right, color: AppColors.primary),
+            onTap: () {
+              print(_recentRocks[index].toMap() );
+              print('le print de la fete');
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) => AnalysisResultScreen(
+
+                    analysisResult: _recentRocks[index].toMap(),
+                    imagePath: _recentRocks[index].imageUrl!,
+                  ),
+                ),
+              );
+            },
           ),
         );
       },
     );
   }
+
+
 } 

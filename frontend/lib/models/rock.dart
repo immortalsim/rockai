@@ -1,134 +1,109 @@
+import 'dart:convert';
+
 class Rock {
-  final int? id;
   final String name;
-  final String type;
+  final String category;
   final String description;
-  final List<String> geographicalPresence;
-  final PhysicalProperties physicalProperties;
-  final List<String> color;
-  final Hardness hardness;
-  final String? imageUrl;
-  final String? dangerLevel;
-  final String? geologicalProperties;
-  final String? commonUses;
-  final String imageQuality;
+  final String imageUrl;
+  final String common_uses;
   final String confidenceLevel;
+  final String imageQuality;
+  final String color;
+  final String properties;
 
   Rock({
-    this.id,
     required this.name,
-    required this.type,
+    required this.category,
     required this.description,
-    required this.geographicalPresence,
-    required this.physicalProperties,
-    required this.color,
-    required this.hardness,
     required this.imageUrl,
-    this.dangerLevel,
-    this.geologicalProperties,
-    this.commonUses,
+    required this.common_uses,
+    required this.confidenceLevel,
     required this.imageQuality,
-    required this.confidenceLevel
+    required this.color,
+    required this.properties,
   });
 
   factory Rock.fromMap(Map<String, dynamic> map) {
+    print('Parsing rock: $map'); // Log the map being parsed
     return Rock(
-      id: map['id'],
-      name: map['name'],
-      type: map['type'],
-      description: map['description'],
-      geographicalPresence: List<String>.from(map['geographical_presence'] ?? []),
-      physicalProperties: PhysicalProperties.fromMap(map['physical_properties'] ?? {}),
-      color: List<String>.from(map['color'] ?? []),
-      hardness: Hardness.fromMap(map['hardness'] ?? {}),
-      imageUrl: map['image_url'],
-      dangerLevel: map['dangerLevel'],
-      geologicalProperties: map['geologicalProperties'],
-      commonUses: map['commonUses'],
-      imageQuality: map['image_quality'] ?? 'Not determined',
-      confidenceLevel: map['confidence_level'] ?? 'Not determined'
+      name: map['name'] ?? 'pas d\'information',
+      category: map['category'] ?? 'pas d\'information',
+      description: map['description'] ?? 'pas d\'information',
+      imageUrl: map['imageUrl'] ?? 'pas d\'information',
+      common_uses: map['common_uses'] ?? 'pas d\'information',
+      confidenceLevel: map['confidenceLevel'] ?? 'pas d\'information',
+      imageQuality: map['imageQuality'] ?? 'pas d\'information',
+      color: map['color'] ?? 'pas d\'information', // Ensure color is a list of strings
+      properties: map['properties'] ?? 'pas d\'information',
     );
   }
 
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
-      'type': type,
+      'category': category,
       'description': description,
-      'geographical_presence': geographicalPresence,
-      'physical_properties': physicalProperties.toMap(),
-      'color': color,
-      'hardness': hardness.toMap(),
-      'image_url': imageUrl,
-      'dangerLevel': dangerLevel,
-      'geologicalProperties': geologicalProperties,
-      'commonUses': commonUses,
-      'image_quality': imageQuality,
-      'confidence_level': confidenceLevel
-
+      'imageUrl': imageUrl,
+      'common_uses': common_uses,
+      'confidenceLevel': confidenceLevel,
+      'imageQuality': imageQuality,
+      'color': color, // No need to encode color as JSON string
+      'properties': properties,
     };
   }
-}
 
-class PhysicalProperties {
-  final String? texture;
-  final List<String> composition;
-  final String? density;
-  final String? porosity;
-  final String? permeability;
-
-  PhysicalProperties({
-    this.texture,
-    required this.composition,
-    this.density,
-    this.porosity,
-    this.permeability,
-  });
-
-  factory PhysicalProperties.fromMap(Map<String, dynamic> map) {
-    return PhysicalProperties(
-      texture: map['texture'],
-      composition: List<String>.from(map['composition'] ?? []),
-      density: map['density'],
-      porosity: map['porosity'],
-      permeability: map['permeability'],
-    );
+  static List<String> _parseList(dynamic list) {
+    if (list is String) {
+      // Try to decode the string as JSON
+      try {
+        return List<String>.from(json.decode(list));
+      } catch (e) {
+        // If decoding fails, treat the string as a single-item list
+        return [list];
+      }
+    } else if (list is List) {
+      return List<String>.from(list);
+    } else {
+      return ['pas d\'information'];
+    }
   }
 
-  // Ajoutez cette méthode
-  Map<String, dynamic> toMap() {
-    return {
-      'texture': texture,
-      'composition': composition,
-      'density': density,
-      'porosity': porosity,
-      'permeability': permeability,
-    };
+  static Map<String, dynamic> _parseMap(dynamic map) {
+    if (map is String) {
+      // Try to decode the string as JSON
+      try {
+        // Clean the string to make it a valid JSON object
+        String cleanedMap = map
+            .replaceAll('Ã©', 'é') // Fix encoding issues (you can add more replacements if needed)
+            .replaceAll('Ã', 'A')
+            .replaceAll("'", '"'); // Ensure all quotes are correct
+
+        // Add curly braces to make the string a valid JSON object if necessary
+        if (!cleanedMap.startsWith('{')) {
+          cleanedMap = '{$cleanedMap}';
+        }
+
+        final decodedMap = json.decode(cleanedMap);
+        if (decodedMap is Map) {
+          return decodedMap.map((key, value) => MapEntry(key.toString(), value));
+        } else {
+          return {};
+        }
+      } catch (e) {
+        // If decoding fails, return an empty map
+        print('Error decoding properties: $e');
+        return {};
+      }
+    } else if (map is Map) {
+      return map.map((key, value) => MapEntry(key.toString(), value));
+    } else {
+      return {};
+    }
   }
-}
 
-class Hardness {
-  final String? mohsScale;
-  final String? description;
 
-  Hardness({
-    this.mohsScale,
-    this.description,
-  });
 
-  factory Hardness.fromMap(Map<String, dynamic> map) {
-    return Hardness(
-      mohsScale: map['mohs_scale'],
-      description: map['description'],
-    );
-  }
 
-  // Ajoutez cette méthode
-  Map<String, dynamic> toMap() {
-    return {
-      'mohs_scale': mohsScale,
-      'description': description,
-    };
-  }
+
+
 }

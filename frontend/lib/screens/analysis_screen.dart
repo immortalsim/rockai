@@ -55,15 +55,15 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Analyze this image?', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500, color: AppColors.primary)),
+          title: Text('Analyser cette image?', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500, color: AppColors.primary)),
           content: Image.file(File(image.path)),
           actions: <Widget>[
             TextButton(
-              child: Text('Cancel', style: GoogleFonts.exo2(color: AppColors.accent)),
+              child: Text('Annuler', style: GoogleFonts.exo2(color: AppColors.accent)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             TextButton(
-              child: Text('Analyze', style: GoogleFonts.exo2(color: AppColors.primary )),
+              child: Text('Analyse', style: GoogleFonts.exo2(color: AppColors.primary )),
               onPressed: () => Navigator.of(context).pop(true),
             ),
           ],
@@ -74,7 +74,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     if (shouldAnalyze == true) {
       setState(() {
         _isAnalyzing = true;
-        _analysisResult = 'Analyzing...';
+        _analysisResult = 'Analyse en cours...';
       });
 
       try {
@@ -83,7 +83,6 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
           _isAnalyzing = false;
         });
 
-        if (result != null && result['is_rock'] == true) {
           Map<String, dynamic> rockData;
           if (result['objects'] != null && result['objects'] is List && result['objects'].isNotEmpty) {
             rockData = result['objects'][0];
@@ -97,15 +96,15 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
             context: context,
             builder: (BuildContext context) {
               return AlertDialog(
-                title: Text('Save to Collection?', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500, color: AppColors.primary)),
-                content: Text('Do you want to save this rock to your collection?', style: GoogleFonts.exo2()),
+                title: Text('Enregistrer dans la collection ?', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500, color: AppColors.primary)),
+                content: Text('Voulez vous enregistrer cette analyse dans la collection ?', style: GoogleFonts.exo2()),
                 actions: <Widget>[
                   TextButton(
-                    child: Text('Cancel', style: GoogleFonts.exo2(color: AppColors.accent)),
+                    child: Text('Annuler', style: GoogleFonts.exo2(color: AppColors.accent)),
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                   TextButton(
-                    child: Text('Save', style: GoogleFonts.exo2(color: AppColors.primary)),
+                    child: Text('Enregistrer', style: GoogleFonts.exo2(color: AppColors.primary)),
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ],
@@ -125,14 +124,10 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
               ),
             ),
           );
-        } else {
-          setState(() {
-            _analysisResult = 'Not a rock or analysis failed';
-          });
-        }
+
       } catch (e) {
         setState(() {
-          _analysisResult = 'Error during analysis.';
+          _analysisResult = 'Error during analysis. $e';
           _isAnalyzing = false;
         });
       }
@@ -146,17 +141,13 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
     await File(imagePath).copy(permanentPath);
 
     Rock newRock = Rock(
-      name: analysisResult['name'],
-      type: analysisResult['type'],
-      description: analysisResult['description'],
-      geographicalPresence: List<String>.from(analysisResult['geographical_presence']),
-      physicalProperties: PhysicalProperties.fromMap(analysisResult['physical_properties']),
-      color: List<String>.from(analysisResult['color']),
-      hardness: Hardness.fromMap(analysisResult['hardness']),
+      name: analysisResult['rock']['name'],
+      category: analysisResult['rock']['category'],
+      description: analysisResult['rock']['description'],
+      color: analysisResult['rock']['color'],
+      properties: analysisResult['rock']['properties'],
       imageUrl: permanentPath,
-      dangerLevel: analysisResult['dangerLevel'],
-      geologicalProperties: analysisResult['geologicalProperties'],
-      commonUses: analysisResult['commonUses'],
+      common_uses: analysisResult['rock']['common_uses'],
       imageQuality: analysisResult['image_quality'],
       confidenceLevel: analysisResult['confidence_level'],
     );
@@ -178,7 +169,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text('Rock added to collection', style: GoogleFonts.exo2(color: AppColors.onPrimary)),
+        content: Text('Pierre ajoutée à la collection', style: GoogleFonts.exo2(color: AppColors.onPrimary)),
         backgroundColor: AppColors.primary,
       ),
     );
@@ -188,7 +179,7 @@ class _AnalysisScreenState extends State<AnalysisScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Rock Analysis', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500)),
+        title: Text('Analyse de pierre', style: GoogleFonts.spaceGrotesk(fontWeight: FontWeight.w500)),
         backgroundColor: AppColors.primary,
       ),
       body: FutureBuilder<void>(

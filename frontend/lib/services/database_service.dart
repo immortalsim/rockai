@@ -23,7 +23,7 @@ class DatabaseService {
           imagePath TEXT,
           dangerLevel TEXT,
           geologicalProperties TEXT,
-          commonUses TEXT
+          common_uses TEXT
         )
       ''');
     });

@@ -214,7 +214,7 @@ class RockDetailScreen extends StatelessWidget {
         return Icons.fitness_center_outlined;
       case 'physicalProperties':
         return Icons.science_outlined;
-      case 'commonUses':
+      case 'common_uses':
         return Icons.build_outlined;
       case 'dangerLevel':
         return Icons.warning_outlined;

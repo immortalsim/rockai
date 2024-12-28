@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:roche/services/api_service.dart';
 import 'dart:convert';
 import 'rock_detail_screen.dart';
 import '../models/rock.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import '../styles/app_colors.dart';
+import '../services/api_service.dart';
+
 
 class CollectionScreen extends StatefulWidget {
   @override
@@ -67,6 +70,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
     final File file = File('${directory.path}/collection.json');
     final String rocksJson = json.encode(rocks.map((rock) => rock.toMap()).toList());
     await file.writeAsString(rocksJson);
+    rocks = ApiService.getRocks() as List<Rock>;
   }
 
   @override
@@ -147,7 +151,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              "Danger: ${rock.dangerLevel ?? 'Unknown'}",
+                              "Danger: ${rock.category ?? 'Unknown'}",
                               style: GoogleFonts.exo2(
                                 color: AppColors.secondary,
                                 fontSize: 14,
@@ -155,7 +159,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
                             ),
                             SizedBox(height: 4),
                             Text(
-                              rock.geologicalProperties ?? 'No geological properties',
+                              rock.description ?? 'No geological properties',
                               style: GoogleFonts.exo2(
                                 color: AppColors.accent,
                                 fontSize: 12,

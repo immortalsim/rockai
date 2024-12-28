@@ -2,11 +2,17 @@ const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Rock = sequelize.define('Rock', {
+  id: {
+    type: DataTypes.INTEGER,
+    primaryKey: true,
+    autoIncrement: true,
+    allowNull: false,
+  },
   name: {
     type: DataTypes.STRING,
     allowNull: false
   },
-  type: {
+  category: {
     type: DataTypes.STRING,
     allowNull: false
   },
@@ -14,11 +20,7 @@ const Rock = sequelize.define('Rock', {
     type: DataTypes.TEXT,
     allowNull: false
   },
-  geographicalPresence: {
-    type: DataTypes.JSON,
-    defaultValue: []
-  },
-  physicalProperties: {
+  properties: {
     type: DataTypes.JSON,
     defaultValue: {}
   },
@@ -26,14 +28,8 @@ const Rock = sequelize.define('Rock', {
     type: DataTypes.JSON,
     defaultValue: []
   },
-  hardness: {
-    type: DataTypes.JSON,
-    defaultValue: {}
-  },
   imageUrl: DataTypes.STRING,
-  dangerLevel: DataTypes.STRING,
-  geologicalProperties: DataTypes.TEXT,
-  commonUses: DataTypes.TEXT,
+  common_uses: DataTypes.TEXT,
   imageQuality: DataTypes.STRING,
   confidenceLevel: DataTypes.STRING,
   userId: {
@@ -46,4 +42,4 @@ const Rock = sequelize.define('Rock', {
   }
 });
 
-module.exports = Rock; 
+module.exports = Rock;
